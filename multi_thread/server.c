@@ -94,7 +94,7 @@ void *clientHandler(void *arg)
     }
 
     close(clientSocket);
-    printf("[+]Closed connection from %s:%d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+    printf("[+]Closed: %s (%d)\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
     pthread_exit(NULL);
 }
 
