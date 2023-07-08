@@ -19,7 +19,7 @@ struct socketInfo
 };
 
 pthread_mutex_t mutex;
-char messageBoard[MAX_CLIENTS][MAX_MESSAGE_LENGTH];
+char messageBoard[MAX_MESSAGE_LENGTH];
 int numMessages = 0;
 
 int server_socket(void);
@@ -100,16 +100,12 @@ void *clientHandler(void *arg)
 
 void postMessage(int clientSocket)
 {
-    char message[MAX_MESSAGE_LENGTH];
-
     char enterMessage[] = "Enter your message: ";
     send(clientSocket, enterMessage, strlen(enterMessage), 0);
-    recv(clientSocket, message, sizeof(message), 0);
 
     pthread_mutex_lock(&mutex);
-    strncpy(messageBoard[numMessages], message, MAX_MESSAGE_LENGTH - 1);
-    messageBoard[numMessages][MAX_MESSAGE_LENGTH - 1] = '\0';
-    numMessages++;
+    memset(messageBoard, 0, sizeof(messageBoard));
+    recv(clientSocket, messageBoard, sizeof(messageBoard)-1, 0);
     pthread_mutex_unlock(&mutex);
 
     char successMessage[] = "Message posted successfully";
@@ -118,17 +114,10 @@ void postMessage(int clientSocket)
 
 void getMessages(int clientSocket)
 {
-    char messages[MAX_CLIENTS * MAX_MESSAGE_LENGTH] = "";
 
     pthread_mutex_lock(&mutex);
-    for (int i = 0; i < numMessages; i++)
-    {
-        strncat(messages, messageBoard[i], sizeof(messageBoard[i]));
-        strncat(messages, "\n", 1);
-    }
+    send(clientSocket, messageBoard, strlen(messageBoard), 0);
     pthread_mutex_unlock(&mutex);
-
-    send(clientSocket, messages, strlen(messages), 0);
 }
 
 int main(void)
