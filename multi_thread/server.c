@@ -12,6 +12,12 @@
 #define MAX_MESSAGE_LENGTH 100
 #define MAX_CLIENTS 10
 
+struct socketInfo
+{
+    int sock;
+    struct sockaddr_in addr;
+};
+
 pthread_mutex_t mutex;
 char messageBoard[MAX_CLIENTS][MAX_MESSAGE_LENGTH];
 int numMessages = 0;
@@ -63,7 +69,8 @@ int server_socket(void)
 
 void *clientHandler(void *arg)
 {
-    int clientSocket = *(int *)arg;
+    int clientSocket = ((struct socketInfo *)arg)->sock;
+    struct sockaddr_in clientAddr = ((struct socketInfo *)arg)->addr;
     char choice[2];
 
     // メニューを表示
@@ -87,6 +94,7 @@ void *clientHandler(void *arg)
     }
 
     close(clientSocket);
+    printf("[+]Closed connection from %s:%d\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
     pthread_exit(NULL);
 }
 
@@ -127,6 +135,7 @@ int main(void)
 {
     int soc, clientSocket;
     struct sockaddr_in clientAddr;
+    struct socketInfo client;
     socklen_t clientLen;
     pthread_t thread_id;
 
@@ -144,7 +153,10 @@ int main(void)
 
         printf("[+]Accept: %s (%d)\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
 
-        if (pthread_create(&thread_id, NULL, clientHandler, (void *)&clientSocket) != 0)
+        client.sock = clientSocket;
+        client.addr = clientAddr;
+
+        if (pthread_create(&thread_id, NULL, clientHandler, (void *)&client) != 0)
         {
             perror("[-]pthread_create()");
         }
