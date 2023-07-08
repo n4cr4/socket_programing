@@ -4,7 +4,7 @@
 ./server
 ```
 **run in another terminal window**
-``sh
+```sh
 ./client localhost
 ```
 
